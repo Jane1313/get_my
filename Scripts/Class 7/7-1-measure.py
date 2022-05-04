@@ -27,32 +27,30 @@ def adc():
             break
     GPIO.output(dac, 0)
     GPIO.output(leds, decimal2binary(i))
-    y = i/255*3.3
-    return y            #возвращает значение напряжения на выходе тройки
+    #y = i/255*3.3
+    return i            #возвращает значение напряжения на выходе тройки
 
 try:
 	measured_data = []
-	t_0 = datetime.now().time()
+	t_0 = time.time()
 
 	GPIO.output(troyka, 1)
-	i = 0
-	while (u <= 0.97*3.3):
+	u = adc()
+	while (u <= 0.97*255):
 		u = adc()
-		measured_data[i] = u
-		i = i + 1
+		measured_data.append(u)
 		time.sleep(0.001)
 
 	GPIO.output(troyka, 0)
-	while (u >= 0.02*3.3):
+	while (u >= 0.02*255):
 		u = adc()
-		measured_data[i] = u
-		i = i + 1
+		measured_data.append(u)
 		time.sleep(0.001)
 
-	t_1 = datetime.now().time()
+	t_1 = time.time()
 	delta_t = t_1 - t_0
 
-	step_quant = measured_data[2] - measured_data[1]
+	step_quant = 3.3/256
 	sr_v_diskr = len(measured_data) / delta_t
 	period = delta_t / len(measured_data)
 
@@ -67,8 +65,9 @@ try:
 		outfile.write ("\n".join (measured_data_str))
 
 	with open("settings.txt", "w") as outfile:
-		outfile.write ("\n".join (step_quant_str))
-		outfile.write ("\n".join (sr_v_diskr_str))
+		outfile.write (step_quant_str)
+		outfile.write ("\n")
+		outfile.write (sr_v_diskr_str)
 
 	print("Продолжительность эксперимента: ", delta_t, ",период: ", period, ", частота:", sr_v_diskr)
 
